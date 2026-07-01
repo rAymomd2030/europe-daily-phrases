@@ -72,6 +72,19 @@
         </div>
 
         <p class="status-message" id="voice-status" role="status" aria-live="polite"></p>
+        <aside class="voice-diagnostic" id="voice-diagnostic" aria-labelledby="voice-diagnostic-title">
+          <div class="diagnostic-heading">
+            <span class="diagnostic-dot" aria-hidden="true"></span>
+            <h2 id="voice-diagnostic-title">語音狀態</h2>
+          </div>
+          <dl>
+            <div><dt>目前語言</dt><dd id="diagnostic-language">—</dd></div>
+            <div><dt>目標語音</dt><dd id="diagnostic-target">—</dd></div>
+            <div><dt>使用 voice</dt><dd id="diagnostic-voice">—</dd></div>
+            <div><dt>voice.lang</dt><dd id="diagnostic-voice-lang">—</dd></div>
+            <div class="diagnostic-status"><dt>狀態</dt><dd id="diagnostic-match">正在讀取…</dd></div>
+          </dl>
+        </aside>
       </section>
 
       <section class="content-shell" aria-labelledby="section-title">
@@ -90,8 +103,8 @@
           <button type="button" role="tab" data-view="phrases" aria-selected="false">
             <span aria-hidden="true">“ ”</span> 日常對話
           </button>
-          <button type="button" role="tab" data-view="numbers" aria-selected="false">
-            <span aria-hidden="true">123</span> 數字 1–100
+          <button type="button" role="tab" data-view="numberRules" aria-selected="false">
+            <span aria-hidden="true">123</span> 數字公式
           </button>
           <button type="button" role="tab" data-view="favorites" aria-selected="false">
             <span aria-hidden="true">♥</span> 收藏
