@@ -1,12 +1,10 @@
 # Europe Daily Phrases
 
-給 2026 年瑞典、德國、義大利旅行使用的單頁式語言小抄。使用純 HTML、CSS 與 JavaScript，可查字母、日常對話、數字 1–100，也能使用瀏覽器的系統語音朗讀。
+給瑞典、德國、義大利旅行使用的單頁語言工具。使用純 HTML、CSS、JavaScript，可查字母、日常對話、數字組成公式與小數逗號讀法，並使用裝置的 Web Speech API 播放目標語言。
 
-## 如何開啟
+## 開啟方式
 
-最簡單的方式是直接以 Safari、Chrome 或 Edge 開啟 `index.html`。
-
-若瀏覽器對本機檔案功能有限制，建議在專案資料夾啟動簡易靜態伺服器：
+直接以 Safari、Chrome 或 Edge 開啟 `index.html`，或在專案根目錄啟動靜態伺服器：
 
 ```bash
 python3 -m http.server 8000
@@ -14,9 +12,37 @@ python3 -m http.server 8000
 
 然後開啟 `http://localhost:8000`。
 
-## 如何新增句子
+## 資料結構與維護
 
-所有語言資料集中在 `data.js` 的 `LANGUAGE_DATA`。在目標語言的 `phrases` 陣列加入一筆 `phraseItem(...)`：
+所有語言內容集中在 `data.js` 的 `LANGUAGE_DATA`。每種語言必須提供：
+
+```js
+{
+  label: "德語",
+  nativeName: "Deutsch",
+  speechLang: "de-DE",
+  alphabet: [],
+  phrases: [],
+  numberRules: {
+    coreNumbers: [],
+    tens: [],
+    rules: [],
+    exceptions: [],
+    decimalRules: {
+      separatorName: "Komma",
+      separatorSymbol: ",",
+      readingRule: "",
+      description: "",
+      examples: [],
+    },
+    examples: [],
+  },
+}
+```
+
+### 新增句子
+
+在目標語言的 `phrases` 加入 `phraseItem(...)`：
 
 ```js
 phraseItem(
@@ -24,58 +50,176 @@ phraseItem(
   "restaurant",
   "中文意思",
   "當地語言原文",
-  "中文近似發音",
+  "中文近似音",
   "使用情境",
 )
 ```
 
-可用分類為：
+分類可用 `greetings`、`polite`、`travel`、`restaurant`、`transport`、`accommodation`。
 
-- `greetings`：招呼
-- `polite`：禮貌
-- `travel`：旅行
-- `restaurant`：餐廳
-- `transport`：交通
-- `accommodation`：住宿
+### 維護數字公式
 
-每筆資料會自動包含空的 `audioUrl`。若要使用預先錄製的音檔，可在物件建立後指定網址，或直接改成完整物件並填入 `audioUrl`；有音檔時會優先播放，音檔不可用時則回退到 Web Speech API。
+數字頁不建立 1–100 長列表：
 
-## 如何新增語言
+- `coreNumbers`：0–19。
+- `tens`：20、30 至 100。
+- `rules`：組合方向與公式。
+- `exceptions`：不規則拼法或母音省略。
+- `decimalRules`：小數逗號名稱、符號、規則與範例。
+- `examples`：少量可拆解的練習數字。
 
-1. 在 `data.js` 的 `LANGUAGE_DATA` 新增語言 key。
-2. 提供 `label`、`nativeName`、`flag`、`speechLang`、`accent`、`alphabetNote`。
-3. 加入完整的 `alphabet`、`phrases`、`numbers` 陣列。
-4. 若需要專屬配色，在 `styles.css` 增加 `body[data-language="語言 key"]` 的 CSS 變數。
-5. `speechLang` 必須使用瀏覽器支援的 BCP 47 語言標籤，例如 `fr-FR`。
+可播放項目使用：
 
-目前三種語言的語音標籤：
+```js
+{
+  value: "21",
+  text: "einundzwanzig",
+  meaning: "二十一",
+  pronunciation: "中文近似音，只顯示",
+  speechText: "einundzwanzig",
+  formula: "ein + und + zwanzig",
+  note: "21 使用 ein",
+  audioUrl: "",
+}
+```
+
+`speechText` 是唯一優先送入語音引擎的欄位；`pronunciation` 與 `meaning` 永遠不可朗讀。若有錄製音檔，可填入 `audioUrl`，否則使用 Web Speech API。
+
+### 新增語言
+
+1. 在 `LANGUAGE_DATA` 新增語言 key。
+2. 提供 `label`、`nativeName`、`flag`、`speechLang`、`alphabetNote`。
+3. 加入 `alphabet`、`phrases`、`numberRules`。
+4. 在 `styles.css` 加入該語言的色彩變數。
+5. `speechLang` 使用 BCP 47 標籤，例如 `fr-FR`。
+
+## 語音正確性與限制
+
+目前標籤：
 
 - 瑞典語：`sv-SE`
 - 德語：`de-DE`
 - 義大利語：`it-IT`
 
-## 數字資料
+播放一律經過 `getSpeakableText()` 與 `speakText()`：
 
-`data.js` 以各語言獨立的基礎數字表與組字規則建立 1–100：
+1. 優先讀取 `speechText`，缺漏才使用 `text`。
+2. `utterance.lang` 明確指定目前語言的 `speechLang`。
+3. 語音先比對完整地區標籤，再選同語系 voice。
+4. 找不到 `sv`、`de` 或 `it` voice 時停止播放，不使用英文 voice 代讀。
+5. `voiceschanged` 會處理瀏覽器延遲載入語音。
+6. 每種語言選擇的 voice 分別儲存在 `speechVoice.swedish`、`speechVoice.german`、`speechVoice.italian`。
 
-- 瑞典語使用十位＋個位的合寫規則。
-- 德語使用個位＋`und`＋十位，並處理 16、17、整十與 `ein` 的變化。
-- 義大利語處理 1、8 前的母音省略，以及尾數 3 的重音符號。
+字母的 `speechText` 使用完整提示，例如 `bokstaven A`、`Buchstabe A`、`lettera A`，避免單一字母被當作英文。語音品質與可用清單仍取決於瀏覽器及作業系統已安裝的語音包；建議在 Safari、Chrome、Edge 測試。
 
-維護時可直接檢查各語言的 `build...Numbers()`，不會套用英文數字規則。
+## 部署建議
 
-## 發音與瀏覽器支援
+### 方案 A：Vercel（推薦）
 
-發音使用 `SpeechSynthesisUtterance`。語音清單、口音與自然度取決於瀏覽器與作業系統已安裝的語音包；如果找不到目前語言的語音，頁面會顯示提示，其他功能不受影響。
+適合不想在網址露出 GitHub 帳號、希望網址像產品名稱的情境。專案名稱建議：
 
-語音名稱與播放速度會依語言分別保存在 `localStorage`。收藏、主題與最後使用的語言也會保存在同一瀏覽器中。
+- `europe-daily-phrases`
+- `europedailyphrase`
+- `europe-daily-phrase`
 
-建議在最新版 Safari、Chrome、Edge 測試。iPhone／iPad 上 Safari 通常會使用 iOS 的系統語音；如缺少語言，請先到系統的語音或輔助使用設定下載。
+預期網址可能是 `https://europe-daily-phrases.vercel.app` 或 `https://europedailyphrase.vercel.app`，實際網址依平台可用名稱而定。若已被使用，可改用 `euro-daily-phrases`、`travel-phrase-europe`、`phrasepack-europe`、`daily-euro-phrases`。
 
-## 檔案結構
+部署流程：
 
-- `index.html`：頁面結構與無障礙語意。
-- `styles.css`：響應式版面、三語配色、深淺模式與互動狀態。
-- `data.js`：三種語言的字母、對話、數字與資料建立規則。
-- `app.js`：渲染、搜尋、分類、收藏、複製、主題及語音控制。
-- `README.md`：開啟方式與資料維護說明。
+1. 將專案放到 GitHub repository。
+2. 登入 Vercel。
+3. 選擇 **Add New Project**。
+4. 匯入這個 GitHub repository。
+5. Framework Preset 選 **Other** 或 **Static**。
+6. Build command 留空。
+7. Output directory 留空或使用根目錄。
+8. 選擇 **Deploy**。
+9. 確認網址是專案名稱組成的 `.vercel.app` 網址。
+10. 若有自己的 `.com`，到 **Project Settings → Domains** 加入，並依 Vercel 提示設定 DNS。
+
+### 方案 B：Netlify
+
+Netlify 也適合純靜態網站，網址可能是 `https://europedailyphrase.netlify.app` 或 `https://europe-daily-phrases.netlify.app`。
+
+1. 將專案放到 GitHub repository。
+2. 登入 Netlify。
+3. 選擇 **Add new site**。
+4. 選擇 **Import an existing project**。
+5. 連接 GitHub repository。
+6. Build command 留空。
+7. Publish directory 使用專案根目錄。
+8. Deploy。
+9. 到 Site settings 修改 site name。
+10. 若有自己的 `.com`，到 Domain management 加入自訂網域。
+
+Netlify 的預設網址由 site name 組成，可在 site settings 修改。
+
+### 方案 C：GitHub Pages + 自訂網域
+
+GitHub Pages 預設網址通常包含帳號，例如 `https://你的github帳號.github.io/europe-daily-phrases/`，不建議把它當成正式產品網址。可搭配 `https://europedailyphrase.com` 或 `https://europe-daily-phrases.com`。
+
+1. 將專案推到 GitHub repository。
+2. 到 repository 的 Settings。
+3. 進入 Pages。
+4. 選擇 `main` branch 等部署來源。
+5. 先確認 Pages 正常顯示。
+6. 購買自訂網域。
+7. 在 Pages 的 Custom domain 輸入自訂網域。
+8. 到網域商後台設定 DNS。
+9. 等待 DNS 生效。
+10. 啟用 HTTPS。
+
+## 建議網站名稱與網域
+
+最推薦的名稱：
+
+- Europe Daily Phrases
+- Europe Phrase Kit
+- Euro Travel Phrases
+- Daily Euro Phrases
+- Travel Phrase Europe
+
+| 網站名稱 | 專案名稱 | 可能網址 |
+| --- | --- | --- |
+| Europe Daily Phrases | europe-daily-phrases | europe-daily-phrases.com |
+| Europe Daily Phrase | europedailyphrase | europedailyphrase.com |
+| Europe Phrase Kit | europe-phrase-kit | europe-phrase-kit.com |
+| Euro Travel Phrases | euro-travel-phrases | euro-travel-phrases.com |
+| Daily Euro Phrases | daily-euro-phrases | daily-euro-phrases.com |
+
+網域是否可用需要實際查詢；若 `.com` 不可用，可考慮 `.app`、`.travel`、`.tools`、`.site`、`.net`。
+
+專案內統一使用：
+
+- HTML title／頁面主標題：Europe Daily Phrases
+- 副標題：瑞典・德國・義大利旅行日常語言小抄
+- Repository／Vercel／Netlify 名稱：`europe-daily-phrases`
+
+## 部署後檢查清單
+
+1. 正式網址不是 GitHub 帳號網址。
+2. 手機 Safari 可正常開啟。
+3. iPad Safari 可正常開啟。
+4. Chrome 可正常開啟。
+5. 三種語言切換正常。
+6. 字母播放使用正確語言 voice。
+7. 單字播放不會朗讀中文近似音。
+8. 句子播放不會朗讀中文意思。
+9. 數字頁是公式教學，不是 1–100 長列表。
+10. 搜尋功能正常。
+11. 收藏重新整理後保留。
+12. 深色模式正常。
+13. title 與 icon 正確。
+14. 網址使用 HTTPS。
+15. Console 沒有錯誤。
+16. README 清楚說明資料更新方式。
+17. README 說明語音依賴裝置系統語音。
+18. README 沒有把 `username.github.io` 當作主要正式網址。
+
+## 檔案
+
+- `index.html`：單頁結構、語音設定與診斷區。
+- `styles.css`：響應式版面、數字公式卡片、深淺模式。
+- `data.js`：三語字母、對話、數字規則、小數逗號資料。
+- `app.js`：渲染、搜尋、收藏、複製及統一語音管理。
+- `README.md`：維護、語音、部署與驗收說明。
