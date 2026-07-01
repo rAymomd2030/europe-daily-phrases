@@ -15,183 +15,66 @@ const CATEGORY_LABELS = Object.freeze({
   accommodation: "住宿",
 });
 
-const alphabetItem = (letter, name, pronunciation, speakText = name, note = "") => ({
-  letter,
+const alphabetItem = (text, name, pronunciation, speechText, note = "") => ({
+  text,
   name,
   pronunciation,
-  speakText,
+  speechText,
   note,
   audioUrl: "",
 });
 
-const phraseItem = (id, category, meaning, original, pronunciation, context) => ({
+const swedishLetter = (text, name, pronunciation, note = "") =>
+  alphabetItem(text, name, pronunciation, `bokstaven ${text}`, note);
+
+const germanLetter = (text, name, pronunciation, note = "") =>
+  alphabetItem(text, name, pronunciation, text === "ß" ? "Eszett" : `Buchstabe ${text}`, note);
+
+const italianLetter = (text, name, pronunciation, note = "") =>
+  alphabetItem(text, name, pronunciation, `lettera ${text}`, note);
+
+const phraseItem = (id, category, meaning, text, pronunciation, context) => ({
   id,
   category,
   meaning,
-  original,
+  text,
   pronunciation,
   context,
-  speakText: original,
+  speechText: text,
   audioUrl: "",
 });
 
-const numberItem = (value, word, pronunciation) => ({
+const numberRuleItem = (
   value,
-  word,
+  text,
+  meaning,
   pronunciation,
-  speakText: word,
+  formula = "",
+  note = "",
+  category = "number",
+  speechText = text,
+) => ({
+  value,
+  text,
+  meaning,
+  pronunciation,
+  speechText,
+  formula,
+  note,
+  category,
   audioUrl: "",
 });
 
-function buildSwedishNumbers() {
-  const units = {
-    1: ["ett", "欸特"],
-    2: ["två", "托沃"],
-    3: ["tre", "特雷"],
-    4: ["fyra", "菲拉"],
-    5: ["fem", "費姆"],
-    6: ["sex", "塞克斯"],
-    7: ["sju", "許"],
-    8: ["åtta", "歐塔"],
-    9: ["nio", "尼歐"],
-  };
-  const teens = {
-    10: ["tio", "提歐"],
-    11: ["elva", "艾爾瓦"],
-    12: ["tolv", "托爾夫"],
-    13: ["tretton", "特雷通"],
-    14: ["fjorton", "菲尤通"],
-    15: ["femton", "費姆通"],
-    16: ["sexton", "塞克斯通"],
-    17: ["sjutton", "許通"],
-    18: ["arton", "阿通"],
-    19: ["nitton", "尼通"],
-  };
-  const tens = {
-    20: ["tjugo", "許果"],
-    30: ["trettio", "特雷提歐"],
-    40: ["fyrtio", "菲提歐"],
-    50: ["femtio", "費姆提歐"],
-    60: ["sextio", "塞克斯提歐"],
-    70: ["sjuttio", "許提歐"],
-    80: ["åttio", "歐提歐"],
-    90: ["nittio", "尼提歐"],
-  };
-
-  return Array.from({ length: 100 }, (_, index) => {
-    const value = index + 1;
-    if (units[value]) return numberItem(value, ...units[value]);
-    if (teens[value]) return numberItem(value, ...teens[value]);
-    if (tens[value]) return numberItem(value, ...tens[value]);
-    if (value === 100) return numberItem(100, "hundra", "亨德拉");
-    const ten = Math.floor(value / 10) * 10;
-    const unit = value % 10;
-    return numberItem(value, `${tens[ten][0]}${units[unit][0]}`, `${tens[ten][1]}・${units[unit][1]}`);
-  });
-}
-
-function buildGermanNumbers() {
-  const units = {
-    1: ["eins", "艾因斯"],
-    2: ["zwei", "茲外"],
-    3: ["drei", "德萊"],
-    4: ["vier", "菲爾"],
-    5: ["fünf", "芬夫"],
-    6: ["sechs", "澤克斯"],
-    7: ["sieben", "西本"],
-    8: ["acht", "阿赫特"],
-    9: ["neun", "諾因"],
-  };
-  const teens = {
-    10: ["zehn", "澤恩"],
-    11: ["elf", "艾爾夫"],
-    12: ["zwölf", "茲沃爾夫"],
-    13: ["dreizehn", "德萊澤恩"],
-    14: ["vierzehn", "菲爾澤恩"],
-    15: ["fünfzehn", "芬夫澤恩"],
-    16: ["sechzehn", "澤希澤恩"],
-    17: ["siebzehn", "西普澤恩"],
-    18: ["achtzehn", "阿赫特澤恩"],
-    19: ["neunzehn", "諾因澤恩"],
-  };
-  const tens = {
-    20: ["zwanzig", "茲凡茲希"],
-    30: ["dreißig", "德萊希"],
-    40: ["vierzig", "菲爾茲希"],
-    50: ["fünfzig", "芬夫茲希"],
-    60: ["sechzig", "澤希茲希"],
-    70: ["siebzig", "西普茲希"],
-    80: ["achtzig", "阿赫特茲希"],
-    90: ["neunzig", "諾因茲希"],
-  };
-
-  return Array.from({ length: 100 }, (_, index) => {
-    const value = index + 1;
-    if (units[value]) return numberItem(value, ...units[value]);
-    if (teens[value]) return numberItem(value, ...teens[value]);
-    if (tens[value]) return numberItem(value, ...tens[value]);
-    if (value === 100) return numberItem(100, "einhundert", "艾因・洪德特");
-    const ten = Math.floor(value / 10) * 10;
-    const unit = value % 10;
-    const unitWord = unit === 1 ? "ein" : units[unit][0];
-    const unitPronunciation = unit === 1 ? "艾因" : units[unit][1];
-    return numberItem(
-      value,
-      `${unitWord}und${tens[ten][0]}`,
-      `${unitPronunciation}・翁德・${tens[ten][1]}`,
-    );
-  });
-}
-
-function buildItalianNumbers() {
-  const units = {
-    1: ["uno", "烏諾"],
-    2: ["due", "杜欸"],
-    3: ["tre", "特雷"],
-    4: ["quattro", "夸特羅"],
-    5: ["cinque", "欽奎"],
-    6: ["sei", "賽"],
-    7: ["sette", "塞特"],
-    8: ["otto", "奧托"],
-    9: ["nove", "諾維"],
-  };
-  const teens = {
-    10: ["dieci", "迪耶奇"],
-    11: ["undici", "溫迪奇"],
-    12: ["dodici", "多迪奇"],
-    13: ["tredici", "特雷迪奇"],
-    14: ["quattordici", "夸托爾迪奇"],
-    15: ["quindici", "昆迪奇"],
-    16: ["sedici", "塞迪奇"],
-    17: ["diciassette", "迪恰塞特"],
-    18: ["diciotto", "迪裘托"],
-    19: ["diciannove", "迪恰諾維"],
-  };
-  const tens = {
-    20: ["venti", "文提"],
-    30: ["trenta", "特倫塔"],
-    40: ["quaranta", "夸蘭塔"],
-    50: ["cinquanta", "欽款塔"],
-    60: ["sessanta", "塞桑塔"],
-    70: ["settanta", "塞坦塔"],
-    80: ["ottanta", "奧坦塔"],
-    90: ["novanta", "諾萬塔"],
-  };
-
-  return Array.from({ length: 100 }, (_, index) => {
-    const value = index + 1;
-    if (units[value]) return numberItem(value, ...units[value]);
-    if (teens[value]) return numberItem(value, ...teens[value]);
-    if (tens[value]) return numberItem(value, ...tens[value]);
-    if (value === 100) return numberItem(100, "cento", "千托");
-    const ten = Math.floor(value / 10) * 10;
-    const unit = value % 10;
-    const elide = unit === 1 || unit === 8;
-    const tenStem = elide ? tens[ten][0].slice(0, -1) : tens[ten][0];
-    const unitWord = unit === 3 ? "tré" : units[unit][0];
-    return numberItem(value, `${tenStem}${unitWord}`, `${tens[ten][1]}・${units[unit][1]}`);
-  });
-}
+const decimalExample = (value, text, meaning, note) => ({
+  value,
+  text,
+  meaning,
+  pronunciation: "",
+  speechText: text,
+  note,
+  category: "decimal",
+  audioUrl: "",
+});
 
 const LANGUAGE_DATA = {
   swedish: {
@@ -202,35 +85,35 @@ const LANGUAGE_DATA = {
     accent: "swedish",
     alphabetNote: "瑞典語共有 29 個字母；Å、Ä、Ö 是獨立字母，排在 Z 之後。",
     alphabet: [
-      alphabetItem("A", "a", "啊"),
-      alphabetItem("B", "be", "貝"),
-      alphabetItem("C", "se", "塞"),
-      alphabetItem("D", "de", "得"),
-      alphabetItem("E", "e", "欸"),
-      alphabetItem("F", "eff", "艾夫"),
-      alphabetItem("G", "ge", "耶／給"),
-      alphabetItem("H", "hå", "霍"),
-      alphabetItem("I", "i", "伊"),
-      alphabetItem("J", "ji", "依"),
-      alphabetItem("K", "kå", "科"),
-      alphabetItem("L", "ell", "艾爾"),
-      alphabetItem("M", "em", "艾姆"),
-      alphabetItem("N", "en", "恩"),
-      alphabetItem("O", "o", "烏／歐"),
-      alphabetItem("P", "pe", "佩"),
-      alphabetItem("Q", "ku", "庫"),
-      alphabetItem("R", "ärr", "艾爾（顫音）"),
-      alphabetItem("S", "ess", "艾斯"),
-      alphabetItem("T", "te", "特"),
-      alphabetItem("U", "u", "於"),
-      alphabetItem("V", "ve", "維"),
-      alphabetItem("W", "dubbel-ve", "杜貝爾維"),
-      alphabetItem("X", "eks", "艾克斯"),
-      alphabetItem("Y", "y", "圓唇「於」"),
-      alphabetItem("Z", "säta", "塞塔"),
-      alphabetItem("Å", "å", "喔"),
-      alphabetItem("Ä", "ä", "欸"),
-      alphabetItem("Ö", "ö", "圓唇「呃」"),
+      swedishLetter("A", "a", "啊"),
+      swedishLetter("B", "be", "貝"),
+      swedishLetter("C", "se", "塞"),
+      swedishLetter("D", "de", "得"),
+      swedishLetter("E", "e", "欸"),
+      swedishLetter("F", "eff", "艾夫"),
+      swedishLetter("G", "ge", "耶／給"),
+      swedishLetter("H", "hå", "霍"),
+      swedishLetter("I", "i", "伊"),
+      swedishLetter("J", "ji", "依"),
+      swedishLetter("K", "kå", "科"),
+      swedishLetter("L", "ell", "艾爾"),
+      swedishLetter("M", "em", "艾姆"),
+      swedishLetter("N", "en", "恩"),
+      swedishLetter("O", "o", "烏／歐"),
+      swedishLetter("P", "pe", "佩"),
+      swedishLetter("Q", "ku", "庫"),
+      swedishLetter("R", "ärr", "艾爾（顫音）"),
+      swedishLetter("S", "ess", "艾斯"),
+      swedishLetter("T", "te", "特"),
+      swedishLetter("U", "u", "於"),
+      swedishLetter("V", "ve", "維"),
+      swedishLetter("W", "dubbel-ve", "杜貝爾維"),
+      swedishLetter("X", "eks", "艾克斯"),
+      swedishLetter("Y", "y", "圓唇「於」"),
+      swedishLetter("Z", "säta", "塞塔"),
+      swedishLetter("Å", "å", "喔"),
+      swedishLetter("Ä", "ä", "欸"),
+      swedishLetter("Ö", "ö", "圓唇「呃」"),
     ],
     phrases: [
       phraseItem("hello", "greetings", "你好", "Hej!", "嗨／嘿", "最通用的日常招呼。"),
@@ -270,7 +153,83 @@ const LANGUAGE_DATA = {
       phraseItem("wifi", "accommodation", "這裡有 Wi-Fi 嗎？", "Finns det wifi här?", "芬斯・德・外法以・海爾", "詢問網路服務。"),
       phraseItem("allergy", "restaurant", "我對堅果過敏", "Jag är allergisk mot nötter.", "亞・艾・阿萊爾吉斯克・莫特・內特爾", "用餐前說明過敏。"),
     ],
-    numbers: buildSwedishNumbers(),
+    numberRules: {
+      coreNumbers: [
+        numberRuleItem("0", "noll", "零", "諾爾", "", "", "core"),
+        numberRuleItem("1", "ett / en", "一", "欸特／恩", "", "單獨數數優先使用 ett。", "core", "ett"),
+        numberRuleItem("2", "två", "二", "托沃", "", "", "core"),
+        numberRuleItem("3", "tre", "三", "特雷", "", "", "core"),
+        numberRuleItem("4", "fyra", "四", "菲拉", "", "", "core"),
+        numberRuleItem("5", "fem", "五", "費姆", "", "", "core"),
+        numberRuleItem("6", "sex", "六", "塞克斯", "", "", "core"),
+        numberRuleItem("7", "sju", "七", "許", "", "", "core"),
+        numberRuleItem("8", "åtta", "八", "歐塔", "", "", "core"),
+        numberRuleItem("9", "nio", "九", "尼歐", "", "", "core"),
+        numberRuleItem("10", "tio", "十", "提歐", "", "", "core"),
+        numberRuleItem("11", "elva", "十一", "艾爾瓦", "", "", "core"),
+        numberRuleItem("12", "tolv", "十二", "托爾夫", "", "", "core"),
+        numberRuleItem("13", "tretton", "十三", "特雷通", "", "", "core"),
+        numberRuleItem("14", "fjorton", "十四", "菲尤通", "", "", "core"),
+        numberRuleItem("15", "femton", "十五", "費姆通", "", "", "core"),
+        numberRuleItem("16", "sexton", "十六", "塞克斯通", "", "", "core"),
+        numberRuleItem("17", "sjutton", "十七", "許通", "", "", "core"),
+        numberRuleItem("18", "arton", "十八", "阿通", "", "", "core"),
+        numberRuleItem("19", "nitton", "十九", "尼通", "", "", "core"),
+      ],
+      tens: [
+        numberRuleItem("20", "tjugo", "二十", "許果", "", "", "tens"),
+        numberRuleItem("30", "trettio", "三十", "特雷提歐", "", "", "tens"),
+        numberRuleItem("40", "fyrtio", "四十", "菲提歐", "", "", "tens"),
+        numberRuleItem("50", "femtio", "五十", "費姆提歐", "", "", "tens"),
+        numberRuleItem("60", "sextio", "六十", "塞克斯提歐", "", "", "tens"),
+        numberRuleItem("70", "sjuttio", "七十", "許提歐", "", "", "tens"),
+        numberRuleItem("80", "åttio", "八十", "歐提歐", "", "", "tens"),
+        numberRuleItem("90", "nittio", "九十", "尼提歐", "", "", "tens"),
+        numberRuleItem("100", "hundra", "一百", "亨德拉", "", "", "tens"),
+      ],
+      rules: [
+        {
+          title: "基本組合方向",
+          formula: "十位數 + 個位數",
+          description: "瑞典語 21 以後通常由十位數接個位數，中間不用加 and，寫成一個字。",
+        },
+        { title: "21", formula: "tjugo + ett → tjugoett", description: "二十加一。" },
+        { title: "22", formula: "tjugo + två → tjugotvå", description: "二十加二。" },
+        { title: "35", formula: "trettio + fem → trettiofem", description: "三十加五。" },
+        { title: "48", formula: "fyrtio + åtta → fyrtioåtta", description: "四十加八。" },
+        { title: "99", formula: "nittio + nio → nittionio", description: "九十加九。" },
+      ],
+      exceptions: [
+        { title: "1 的兩種形式", text: "1 有 ett / en，單獨數數常用 ett。" },
+        { title: "20 要單獨記", text: "20 是 tjugo，不是 två + tio。" },
+        { title: "不規則十位", text: "30 trettio、40 fyrtio 是需要另外記的十位數。" },
+        { title: "方向像中文", text: "瑞典語數字組合方向和中文接近，是「二十 + 一」。" },
+      ],
+      decimalRules: {
+        separatorName: "komma",
+        separatorSymbol: ",",
+        readingRule: "整數 + komma + 小數部分",
+        description: "日常價格、尺寸或數值中，小數逗號後可以依情境讀成一個數字，也可以逐位讀出。學習者優先理解 komma 即可。",
+        examples: [
+          decimalExample("3,14", "tre komma fjorton", "三點一四", "小數逗號後可依情境讀成一整個數字或逐位讀出；逐位也可說 tre komma ett fyra。"),
+          decimalExample("1,5", "ett komma fem", "一點五", "相當於中文的小數點。"),
+          decimalExample("0,8", "noll komma åtta", "零點八", "相當於中文的小數點。"),
+          decimalExample("12,75", "tolv komma sjuttiofem", "十二點七五", "小數部分也可依情境逐位讀出。"),
+        ],
+      },
+      examples: [
+        numberRuleItem("21", "tjugoett", "二十一", "許果・欸特", "tjugo + ett", "十位數接個位數。", "example"),
+        numberRuleItem("22", "tjugotvå", "二十二", "許果・托沃", "tjugo + två", "", "example"),
+        numberRuleItem("28", "tjugoåtta", "二十八", "許果・歐塔", "tjugo + åtta", "", "example"),
+        numberRuleItem("31", "trettioett", "三十一", "特雷提歐・欸特", "trettio + ett", "", "example"),
+        numberRuleItem("35", "trettiofem", "三十五", "特雷提歐・費姆", "trettio + fem", "", "example"),
+        numberRuleItem("48", "fyrtioåtta", "四十八", "菲提歐・歐塔", "fyrtio + åtta", "", "example"),
+        numberRuleItem("57", "femtiosju", "五十七", "費姆提歐・許", "femtio + sju", "", "example"),
+        numberRuleItem("81", "åttioett", "八十一", "歐提歐・欸特", "åttio + ett", "", "example"),
+        numberRuleItem("88", "åttioåtta", "八十八", "歐提歐・歐塔", "åttio + åtta", "", "example"),
+        numberRuleItem("99", "nittionio", "九十九", "尼提歐・尼歐", "nittio + nio", "", "example"),
+      ],
+    },
   },
 
   german: {
@@ -281,36 +240,36 @@ const LANGUAGE_DATA = {
     accent: "german",
     alphabetNote: "德語使用 26 個基本字母，另有 Ä、Ö、Ü 與 ß（Eszett）。",
     alphabet: [
-      alphabetItem("A", "a", "啊"),
-      alphabetItem("B", "be", "貝"),
-      alphabetItem("C", "tse", "采", "C"),
-      alphabetItem("D", "de", "得"),
-      alphabetItem("E", "e", "欸"),
-      alphabetItem("F", "eff", "艾夫"),
-      alphabetItem("G", "ge", "給"),
-      alphabetItem("H", "ha", "哈"),
-      alphabetItem("I", "i", "伊"),
-      alphabetItem("J", "jot", "優特"),
-      alphabetItem("K", "ka", "卡"),
-      alphabetItem("L", "ell", "艾爾"),
-      alphabetItem("M", "em", "艾姆"),
-      alphabetItem("N", "en", "恩"),
-      alphabetItem("O", "o", "歐"),
-      alphabetItem("P", "pe", "佩"),
-      alphabetItem("Q", "ku", "庫"),
-      alphabetItem("R", "err", "艾爾（小舌音）"),
-      alphabetItem("S", "ess", "艾斯"),
-      alphabetItem("T", "te", "特"),
-      alphabetItem("U", "u", "烏"),
-      alphabetItem("V", "fau", "法奧"),
-      alphabetItem("W", "we", "維"),
-      alphabetItem("X", "iks", "伊克斯"),
-      alphabetItem("Y", "Ypsilon", "于普西隆"),
-      alphabetItem("Z", "zett", "采特"),
-      alphabetItem("Ä", "Ä", "短「欸」"),
-      alphabetItem("Ö", "Ö", "圓唇「呃」"),
-      alphabetItem("Ü", "Ü", "圓唇「伊」"),
-      alphabetItem("ß", "Eszett", "艾斯采特"),
+      germanLetter("A", "a", "啊"),
+      germanLetter("B", "be", "貝"),
+      germanLetter("C", "tse", "采"),
+      germanLetter("D", "de", "得"),
+      germanLetter("E", "e", "欸"),
+      germanLetter("F", "eff", "艾夫"),
+      germanLetter("G", "ge", "給"),
+      germanLetter("H", "ha", "哈"),
+      germanLetter("I", "i", "伊"),
+      germanLetter("J", "jot", "優特"),
+      germanLetter("K", "ka", "卡"),
+      germanLetter("L", "ell", "艾爾"),
+      germanLetter("M", "em", "艾姆"),
+      germanLetter("N", "en", "恩"),
+      germanLetter("O", "o", "歐"),
+      germanLetter("P", "pe", "佩"),
+      germanLetter("Q", "ku", "庫"),
+      germanLetter("R", "err", "艾爾（小舌音）"),
+      germanLetter("S", "ess", "艾斯"),
+      germanLetter("T", "te", "特"),
+      germanLetter("U", "u", "烏"),
+      germanLetter("V", "fau", "法奧"),
+      germanLetter("W", "we", "維"),
+      germanLetter("X", "iks", "伊克斯"),
+      germanLetter("Y", "Ypsilon", "于普西隆"),
+      germanLetter("Z", "zett", "采特"),
+      germanLetter("Ä", "Ä", "短「欸」"),
+      germanLetter("Ö", "Ö", "圓唇「呃」"),
+      germanLetter("Ü", "Ü", "圓唇「伊」"),
+      germanLetter("ß", "Eszett", "艾斯采特"),
     ],
     phrases: [
       phraseItem("hello", "greetings", "你好", "Hallo!", "哈囉", "最通用的日常招呼。"),
@@ -350,7 +309,84 @@ const LANGUAGE_DATA = {
       phraseItem("wifi", "accommodation", "這裡有 Wi-Fi 嗎？", "Gibt es hier WLAN?", "吉普特・艾斯・希爾・威蘭", "詢問網路服務。"),
       phraseItem("allergy", "restaurant", "我對堅果過敏", "Ich bin allergisch gegen Nüsse.", "伊希・賓・阿萊爾吉施・給根・紐瑟", "用餐前說明過敏。"),
     ],
-    numbers: buildGermanNumbers(),
+    numberRules: {
+      coreNumbers: [
+        numberRuleItem("0", "null", "零", "努爾", "", "", "core"),
+        numberRuleItem("1", "eins", "一", "艾因斯", "", "", "core"),
+        numberRuleItem("2", "zwei", "二", "茲外", "", "", "core"),
+        numberRuleItem("3", "drei", "三", "德萊", "", "", "core"),
+        numberRuleItem("4", "vier", "四", "菲爾", "", "", "core"),
+        numberRuleItem("5", "fünf", "五", "芬夫", "", "", "core"),
+        numberRuleItem("6", "sechs", "六", "澤克斯", "", "", "core"),
+        numberRuleItem("7", "sieben", "七", "西本", "", "", "core"),
+        numberRuleItem("8", "acht", "八", "阿赫特", "", "", "core"),
+        numberRuleItem("9", "neun", "九", "諾因", "", "", "core"),
+        numberRuleItem("10", "zehn", "十", "澤恩", "", "", "core"),
+        numberRuleItem("11", "elf", "十一", "艾爾夫", "", "", "core"),
+        numberRuleItem("12", "zwölf", "十二", "茲沃爾夫", "", "", "core"),
+        numberRuleItem("13", "dreizehn", "十三", "德萊澤恩", "", "", "core"),
+        numberRuleItem("14", "vierzehn", "十四", "菲爾澤恩", "", "", "core"),
+        numberRuleItem("15", "fünfzehn", "十五", "芬夫澤恩", "", "", "core"),
+        numberRuleItem("16", "sechzehn", "十六", "澤希澤恩", "", "不是 sechszehn。", "core"),
+        numberRuleItem("17", "siebzehn", "十七", "西普澤恩", "", "不是 siebenzehn。", "core"),
+        numberRuleItem("18", "achtzehn", "十八", "阿赫特澤恩", "", "", "core"),
+        numberRuleItem("19", "neunzehn", "十九", "諾因澤恩", "", "", "core"),
+      ],
+      tens: [
+        numberRuleItem("20", "zwanzig", "二十", "茲凡茲希", "", "", "tens"),
+        numberRuleItem("30", "dreißig", "三十", "德萊希", "", "不是 dreizig。", "tens"),
+        numberRuleItem("40", "vierzig", "四十", "菲爾茲希", "", "", "tens"),
+        numberRuleItem("50", "fünfzig", "五十", "芬夫茲希", "", "", "tens"),
+        numberRuleItem("60", "sechzig", "六十", "澤希茲希", "", "", "tens"),
+        numberRuleItem("70", "siebzig", "七十", "西普茲希", "", "", "tens"),
+        numberRuleItem("80", "achtzig", "八十", "阿赫特茲希", "", "", "tens"),
+        numberRuleItem("90", "neunzig", "九十", "諾因茲希", "", "", "tens"),
+        numberRuleItem("100", "hundert", "一百", "洪德特", "", "", "tens"),
+      ],
+      rules: [
+        {
+          title: "基本組合方向",
+          formula: "個位數 + und + 十位數",
+          description: "德語 21 以後通常先說個位數，再用 und 接十位數；順序和中文不同。",
+        },
+        { title: "21", formula: "ein + und + zwanzig → einundzwanzig", description: "像「一和二十」。" },
+        { title: "22", formula: "zwei + und + zwanzig → zweiundzwanzig", description: "二和二十。" },
+        { title: "35", formula: "fünf + und + dreißig → fünfunddreißig", description: "五和三十。" },
+        { title: "48", formula: "acht + und + vierzig → achtundvierzig", description: "八和四十。" },
+        { title: "99", formula: "neun + und + neunzig → neunundneunzig", description: "九和九十。" },
+      ],
+      exceptions: [
+        { title: "21 用 ein", text: "21 裡面用 ein，不是 eins。" },
+        { title: "16 省略 s", text: "16 是 sechzehn，不是 sechszehn。" },
+        { title: "17 省略 en", text: "17 是 siebzehn，不是 siebenzehn。" },
+        { title: "30 的 ß", text: "30 是 dreißig，不是 dreizig。" },
+        { title: "方向要反過來", text: "德語像「一和二十」，請先看個位再看十位。" },
+      ],
+      decimalRules: {
+        separatorName: "Komma",
+        separatorSymbol: ",",
+        readingRule: "整數 + Komma + 小數部分逐位讀出",
+        description: "德語小數逗號後面常逐位讀出，尤其是測量、數據、價格或電話式數字情境。",
+        examples: [
+          decimalExample("3,14", "drei Komma eins vier", "三點一四", "德語小數逗號後通常逐位讀出。"),
+          decimalExample("1,5", "eins Komma fünf", "一點五", "相當於中文的小數點。"),
+          decimalExample("0,8", "null Komma acht", "零點八", "相當於中文的小數點。"),
+          decimalExample("12,75", "zwölf Komma sieben fünf", "十二點七五", "小數部分逐位讀出。"),
+        ],
+      },
+      examples: [
+        numberRuleItem("21", "einundzwanzig", "二十一", "艾因・翁德・茲凡茲希", "ein + und + zwanzig", "21 使用 ein，不是 eins。", "example"),
+        numberRuleItem("22", "zweiundzwanzig", "二十二", "茲外・翁德・茲凡茲希", "zwei + und + zwanzig", "", "example"),
+        numberRuleItem("28", "achtundzwanzig", "二十八", "阿赫特・翁德・茲凡茲希", "acht + und + zwanzig", "", "example"),
+        numberRuleItem("31", "einunddreißig", "三十一", "艾因・翁德・德萊希", "ein + und + dreißig", "個位先說。", "example"),
+        numberRuleItem("35", "fünfunddreißig", "三十五", "芬夫・翁德・德萊希", "fünf + und + dreißig", "", "example"),
+        numberRuleItem("48", "achtundvierzig", "四十八", "阿赫特・翁德・菲爾茲希", "acht + und + vierzig", "", "example"),
+        numberRuleItem("57", "siebenundfünfzig", "五十七", "西本・翁德・芬夫茲希", "sieben + und + fünfzig", "", "example"),
+        numberRuleItem("81", "einundachtzig", "八十一", "艾因・翁德・阿赫特茲希", "ein + und + achtzig", "使用 ein。", "example"),
+        numberRuleItem("88", "achtundachtzig", "八十八", "阿赫特・翁德・阿赫特茲希", "acht + und + achtzig", "", "example"),
+        numberRuleItem("99", "neunundneunzig", "九十九", "諾因・翁德・諾因茲希", "neun + und + neunzig", "", "example"),
+      ],
+    },
   },
 
   italian: {
@@ -361,32 +397,32 @@ const LANGUAGE_DATA = {
     accent: "italian",
     alphabetNote: "義大利語主要使用 21 個字母。J、K、W、X、Y 多見於外來語、名字或品牌。",
     alphabet: [
-      alphabetItem("A", "a", "啊"),
-      alphabetItem("B", "bi", "比"),
-      alphabetItem("C", "ci", "奇"),
-      alphabetItem("D", "di", "迪"),
-      alphabetItem("E", "e", "欸"),
-      alphabetItem("F", "effe", "艾費"),
-      alphabetItem("G", "gi", "吉"),
-      alphabetItem("H", "acca", "阿卡"),
-      alphabetItem("I", "i", "伊"),
-      alphabetItem("L", "elle", "艾雷"),
-      alphabetItem("M", "emme", "艾梅"),
-      alphabetItem("N", "enne", "艾內"),
-      alphabetItem("O", "o", "喔"),
-      alphabetItem("P", "pi", "皮"),
-      alphabetItem("Q", "cu", "庫"),
-      alphabetItem("R", "erre", "艾雷（顫音）"),
-      alphabetItem("S", "esse", "艾塞"),
-      alphabetItem("T", "ti", "提"),
-      alphabetItem("U", "u", "烏"),
-      alphabetItem("V", "vi / vu", "維／烏", "vi"),
-      alphabetItem("Z", "zeta", "澤塔"),
-      alphabetItem("J", "i lunga", "伊・倫加", "i lunga", "外來字母"),
-      alphabetItem("K", "cappa", "卡帕", "cappa", "外來字母"),
-      alphabetItem("W", "doppia vu", "多皮亞・烏", "doppia vu", "外來字母"),
-      alphabetItem("X", "ics", "伊克斯", "ics", "外來字母"),
-      alphabetItem("Y", "ipsilon", "伊普西隆", "ipsilon", "外來字母"),
+      italianLetter("A", "a", "啊"),
+      italianLetter("B", "bi", "比"),
+      italianLetter("C", "ci", "奇"),
+      italianLetter("D", "di", "迪"),
+      italianLetter("E", "e", "欸"),
+      italianLetter("F", "effe", "艾費"),
+      italianLetter("G", "gi", "吉"),
+      italianLetter("H", "acca", "阿卡"),
+      italianLetter("I", "i", "伊"),
+      italianLetter("L", "elle", "艾雷"),
+      italianLetter("M", "emme", "艾梅"),
+      italianLetter("N", "enne", "艾內"),
+      italianLetter("O", "o", "喔"),
+      italianLetter("P", "pi", "皮"),
+      italianLetter("Q", "cu", "庫"),
+      italianLetter("R", "erre", "艾雷（顫音）"),
+      italianLetter("S", "esse", "艾塞"),
+      italianLetter("T", "ti", "提"),
+      italianLetter("U", "u", "烏"),
+      italianLetter("V", "vi / vu", "維／烏"),
+      italianLetter("Z", "zeta", "澤塔"),
+      italianLetter("J", "i lunga", "伊・倫加", "外來字母"),
+      italianLetter("K", "cappa", "卡帕", "外來字母"),
+      italianLetter("W", "doppia vu", "多皮亞・烏", "外來字母"),
+      italianLetter("X", "ics", "伊克斯", "外來字母"),
+      italianLetter("Y", "ipsilon", "伊普西隆", "外來字母"),
     ],
     phrases: [
       phraseItem("hello", "greetings", "你好", "Ciao!", "喬", "熟人間最常用的招呼。"),
@@ -426,6 +462,84 @@ const LANGUAGE_DATA = {
       phraseItem("wifi", "accommodation", "這裡有 Wi-Fi 嗎？", "C'è il Wi-Fi?", "切・伊爾・外法以", "詢問網路服務。"),
       phraseItem("allergy", "restaurant", "我對堅果過敏", "Sono allergico alla frutta a guscio.", "索諾・阿萊爾吉科・阿拉・弗魯塔・阿・古修", "用餐前說明過敏；女性可說 allergica。"),
     ],
-    numbers: buildItalianNumbers(),
+    numberRules: {
+      coreNumbers: [
+        numberRuleItem("0", "zero", "零", "傑羅", "", "", "core"),
+        numberRuleItem("1", "uno", "一", "烏諾", "", "", "core"),
+        numberRuleItem("2", "due", "二", "杜欸", "", "", "core"),
+        numberRuleItem("3", "tre", "三", "特雷", "", "", "core"),
+        numberRuleItem("4", "quattro", "四", "夸特羅", "", "", "core"),
+        numberRuleItem("5", "cinque", "五", "欽奎", "", "", "core"),
+        numberRuleItem("6", "sei", "六", "賽", "", "", "core"),
+        numberRuleItem("7", "sette", "七", "塞特", "", "", "core"),
+        numberRuleItem("8", "otto", "八", "奧托", "", "", "core"),
+        numberRuleItem("9", "nove", "九", "諾維", "", "", "core"),
+        numberRuleItem("10", "dieci", "十", "迪耶奇", "", "", "core"),
+        numberRuleItem("11", "undici", "十一", "溫迪奇", "", "", "core"),
+        numberRuleItem("12", "dodici", "十二", "多迪奇", "", "", "core"),
+        numberRuleItem("13", "tredici", "十三", "特雷迪奇", "", "", "core"),
+        numberRuleItem("14", "quattordici", "十四", "夸托爾迪奇", "", "", "core"),
+        numberRuleItem("15", "quindici", "十五", "昆迪奇", "", "", "core"),
+        numberRuleItem("16", "sedici", "十六", "塞迪奇", "", "", "core"),
+        numberRuleItem("17", "diciassette", "十七", "迪恰塞特", "", "", "core"),
+        numberRuleItem("18", "diciotto", "十八", "迪裘托", "", "", "core"),
+        numberRuleItem("19", "diciannove", "十九", "迪恰諾維", "", "", "core"),
+      ],
+      tens: [
+        numberRuleItem("20", "venti", "二十", "文提", "", "", "tens"),
+        numberRuleItem("30", "trenta", "三十", "特倫塔", "", "", "tens"),
+        numberRuleItem("40", "quaranta", "四十", "夸蘭塔", "", "", "tens"),
+        numberRuleItem("50", "cinquanta", "五十", "欽款塔", "", "", "tens"),
+        numberRuleItem("60", "sessanta", "六十", "塞桑塔", "", "", "tens"),
+        numberRuleItem("70", "settanta", "七十", "塞坦塔", "", "", "tens"),
+        numberRuleItem("80", "ottanta", "八十", "奧坦塔", "", "", "tens"),
+        numberRuleItem("90", "novanta", "九十", "諾萬塔", "", "", "tens"),
+        numberRuleItem("100", "cento", "一百", "千托", "", "", "tens"),
+      ],
+      rules: [
+        {
+          title: "基本組合方向",
+          formula: "十位數 + 個位數",
+          description: "義大利語 21 以後通常由十位數接個位數，方向和中文接近。",
+        },
+        { title: "22", formula: "venti + due → ventidue", description: "二十加二。" },
+        { title: "35", formula: "trenta + cinque → trentacinque", description: "三十加五。" },
+        { title: "46", formula: "quaranta + sei → quarantasei", description: "四十加六。" },
+        { title: "57", formula: "cinquanta + sette → cinquantasette", description: "五十加七。" },
+        { title: "99", formula: "novanta + nove → novantanove", description: "九十加九。" },
+      ],
+      exceptions: [
+        { title: "1 與 8 前省略母音", text: "十位數後接 uno 或 otto 時，通常去掉十位數最後的母音。" },
+        { title: "21 / 28", text: "venti + uno → ventuno；venti + otto → ventotto。" },
+        { title: "31 / 38", text: "trenta + uno → trentuno；trenta + otto → trentotto。" },
+        { title: "41 / 48", text: "quaranta + uno → quarantuno；quaranta + otto → quarantotto。" },
+        { title: "81 / 88", text: "ottanta + uno → ottantuno；ottanta + otto → ottantotto。" },
+        { title: "100 以後", text: "100 是 cento；101 可寫作 centouno。" },
+      ],
+      decimalRules: {
+        separatorName: "virgola",
+        separatorSymbol: ",",
+        readingRule: "整數 + virgola + 小數部分",
+        description: "義大利語小數逗號後可以讀成一整個數字，也可以逐位讀出。旅行情境中，先學會 virgola 的用法即可。",
+        examples: [
+          decimalExample("3,14", "tre virgola quattordici", "三點一四", "小數逗號後可讀成一整個數字；逐位也可說 tre virgola uno quattro。"),
+          decimalExample("1,5", "uno virgola cinque", "一點五", "相當於中文的小數點。"),
+          decimalExample("0,8", "zero virgola otto", "零點八", "相當於中文的小數點。"),
+          decimalExample("12,75", "dodici virgola settantacinque", "十二點七五", "小數部分也可以逐位讀出。"),
+        ],
+      },
+      examples: [
+        numberRuleItem("21", "ventuno", "二十一", "文圖諾", "venti + uno", "省略 venti 最後的 i。", "example"),
+        numberRuleItem("22", "ventidue", "二十二", "文提・杜欸", "venti + due", "", "example"),
+        numberRuleItem("28", "ventotto", "二十八", "文托托", "venti + otto", "省略 venti 最後的 i。", "example"),
+        numberRuleItem("31", "trentuno", "三十一", "特倫圖諾", "trenta + uno", "省略 trenta 最後的 a。", "example"),
+        numberRuleItem("35", "trentacinque", "三十五", "特倫塔・欽奎", "trenta + cinque", "", "example"),
+        numberRuleItem("48", "quarantotto", "四十八", "夸蘭托托", "quaranta + otto", "省略 quaranta 最後的 a。", "example"),
+        numberRuleItem("57", "cinquantasette", "五十七", "欽款塔・塞特", "cinquanta + sette", "", "example"),
+        numberRuleItem("81", "ottantuno", "八十一", "奧坦圖諾", "ottanta + uno", "省略 ottanta 最後的 a。", "example"),
+        numberRuleItem("88", "ottantotto", "八十八", "奧坦托托", "ottanta + otto", "省略 ottanta 最後的 a。", "example"),
+        numberRuleItem("99", "novantanove", "九十九", "諾萬塔・諾維", "novanta + nove", "", "example"),
+      ],
+    },
   },
 };
