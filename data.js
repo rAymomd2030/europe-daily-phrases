@@ -25,13 +25,13 @@ const alphabetItem = (text, name, pronunciation, speechText, note = "") => ({
 });
 
 const swedishLetter = (text, name, pronunciation, note = "") =>
-  alphabetItem(text, name, pronunciation, name, note);
+  alphabetItem(text, name, pronunciation, text, note);
 
 const germanLetter = (text, name, pronunciation, note = "") =>
-  alphabetItem(text, name, pronunciation, name, note);
+  alphabetItem(text, name, pronunciation, text, note);
 
 const italianLetter = (text, name, pronunciation, note = "") =>
-  alphabetItem(text, name, pronunciation, text === "V" ? "vi" : name, note);
+  alphabetItem(text, name, pronunciation, text, note);
 
 const phraseItem = (id, category, meaning, text, pronunciation, context) => ({
   id,
@@ -82,6 +82,7 @@ const LANGUAGE_DATA = {
     nativeName: "Svenska",
     flag: "🇸🇪",
     speechLang: "sv-SE",
+    voiceName: "Alva",
     accent: "swedish",
     alphabetNote: "瑞典語共有 29 個字母；Å、Ä、Ö 是獨立字母，排在 Z 之後。",
     alphabet: [
@@ -237,6 +238,7 @@ const LANGUAGE_DATA = {
     nativeName: "Deutsch",
     flag: "🇩🇪",
     speechLang: "de-DE",
+    voiceName: "Anna",
     accent: "german",
     alphabetNote: "德語使用 26 個基本字母，另有 Ä、Ö、Ü 與 ß（Eszett）。",
     alphabet: [
@@ -394,6 +396,7 @@ const LANGUAGE_DATA = {
     nativeName: "Italiano",
     flag: "🇮🇹",
     speechLang: "it-IT",
+    voiceName: "Eddy",
     accent: "italian",
     alphabetNote: "義大利語主要使用 21 個字母。J、K、W、X、Y 多見於外來語、名字或品牌。",
     alphabet: [
