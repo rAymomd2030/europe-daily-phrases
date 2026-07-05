@@ -25,13 +25,13 @@ const alphabetItem = (text, name, pronunciation, speechText, note = "") => ({
 });
 
 const swedishLetter = (text, name, pronunciation, note = "") =>
-  alphabetItem(text, name, pronunciation, `bokstaven ${text}`, note);
+  alphabetItem(text, name, pronunciation, name, note);
 
 const germanLetter = (text, name, pronunciation, note = "") =>
-  alphabetItem(text, name, pronunciation, text === "ß" ? "Eszett" : `Buchstabe ${text}`, note);
+  alphabetItem(text, name, pronunciation, name, note);
 
 const italianLetter = (text, name, pronunciation, note = "") =>
-  alphabetItem(text, name, pronunciation, `lettera ${text}`, note);
+  alphabetItem(text, name, pronunciation, text === "V" ? "vi" : name, note);
 
 const phraseItem = (id, category, meaning, text, pronunciation, context) => ({
   id,
