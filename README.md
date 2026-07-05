@@ -110,7 +110,7 @@ phraseItem(
 5. `voiceschanged` 會處理瀏覽器延遲載入語音。
 6. 每種語言選擇的 voice 分別儲存在 `speechVoice.swedish`、`speechVoice.german`、`speechVoice.italian`。
 
-字母的 `speechText` 使用完整提示，例如 `bokstaven A`、`Buchstabe A`、`lettera A`，避免單一字母被當作英文。語音品質與可用清單仍取決於瀏覽器及作業系統已安裝的語音包；建議在 Safari、Chrome、Edge 測試。
+字母的 `speechText` 只保存該語言的字母名稱，例如瑞典語 `be`、德語 `tse`、義大利語 `ci`；不加入 `bokstaven`、`Buchstabe` 或 `lettera` 等前綴。三種語言共用同一個語速設定，切換語言時不會沿用不同的快慢值。語音品質與可用清單仍取決於瀏覽器及作業系統已安裝的語音包；建議在 Safari、Chrome、Edge 測試。
 
 ## 部署建議
 
