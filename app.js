@@ -125,8 +125,14 @@ function preferenceFor(languageKey = state.language) {
   return state.preferences[languageKey];
 }
 
-function getCurrentSpeechRate(languageKey = state.language) {
-  return Number(preferenceFor(languageKey).rate || 0.85);
+function getCurrentSpeechRate() {
+  return Number(preferenceFor("swedish").rate || 0.85);
+}
+
+function setSharedSpeechRate(rate) {
+  Object.keys(LANGUAGE_DATA).forEach((languageKey) => {
+    preferenceFor(languageKey).rate = rate;
+  });
 }
 
 function initializeTheme() {
@@ -417,7 +423,7 @@ function renderContent() {
   });
 
   if (state.view === "alphabet") {
-    note = `${language.alphabetNote} 播放時會使用完整的當地語言提示詞，避免瀏覽器把單一字母當成英文。`;
+    note = `${language.alphabetNote} 播放時只朗讀該語言的字母名稱，不會加入其他提示詞。`;
     cards = language.alphabet
       .filter((item) =>
         matchesQuery(item.text, item.name, item.pronunciation, item.note),
@@ -652,7 +658,7 @@ function speakText(item, languageKey = state.language, overrideRate = null) {
   if (!text) return;
 
   stopPlayback();
-  const rate = overrideRate ?? getCurrentSpeechRate(languageKey);
+  const rate = overrideRate ?? getCurrentSpeechRate();
 
   if (item.audioUrl) {
     const audio = new Audio(item.audioUrl);
@@ -794,7 +800,7 @@ function bindEvents() {
   elements.speedControl.addEventListener("click", (event) => {
     const button = event.target.closest("[data-rate]");
     if (!button) return;
-    preferenceFor().rate = Number(button.dataset.rate);
+    setSharedSpeechRate(Number(button.dataset.rate));
     savePreferences();
     updateSpeedControls();
   });
