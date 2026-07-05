@@ -21,6 +21,7 @@ python3 -m http.server 8000
   label: "德語",
   nativeName: "Deutsch",
   speechLang: "de-DE",
+  voiceName: "Anna",
   alphabet: [],
   phrases: [],
   numberRules: {
@@ -88,7 +89,7 @@ phraseItem(
 ### 新增語言
 
 1. 在 `LANGUAGE_DATA` 新增語言 key。
-2. 提供 `label`、`nativeName`、`flag`、`speechLang`、`alphabetNote`。
+2. 提供 `label`、`nativeName`、`flag`、`speechLang`、`voiceName`、`alphabetNote`。
 3. 加入 `alphabet`、`phrases`、`numberRules`。
 4. 在 `styles.css` 加入該語言的色彩變數。
 5. `speechLang` 使用 BCP 47 標籤，例如 `fr-FR`。
@@ -105,12 +106,12 @@ phraseItem(
 
 1. 優先讀取 `speechText`，缺漏才使用 `text`。
 2. `utterance.lang` 明確指定目前語言的 `speechLang`。
-3. 語音先比對完整地區標籤，再選同語系 voice。
-4. 找不到 `sv`、`de` 或 `it` voice 時停止播放，不使用英文 voice 代讀。
+3. 語音先比對指定的 voice 名稱，再確認完整地區標籤。
+4. 目前固定使用瑞典語 `Alva`、德語 `Anna`、義大利語 `Eddy`；找不到指定 voice 時停止播放，不使用其他 voice 代讀。
 5. `voiceschanged` 會處理瀏覽器延遲載入語音。
-6. 每種語言選擇的 voice 分別儲存在 `speechVoice.swedish`、`speechVoice.german`、`speechVoice.italian`。
+6. 語音選擇器只顯示目前語言指定的 voice；相同 voice 的系統名稱若包含地區括號也可識別。
 
-字母的 `speechText` 只保存該語言的字母名稱，例如瑞典語 `be`、德語 `tse`、義大利語 `ci`；不加入 `bokstaven`、`Buchstabe` 或 `lettera` 等前綴。三種語言共用同一個語速設定，切換語言時不會沿用不同的快慢值。語音品質與可用清單仍取決於瀏覽器及作業系統已安裝的語音包；建議在 Safari、Chrome、Edge 測試。
+字母的 `speechText` 使用字母本身，交由指定語言 voice 讀出字母名稱；不加入 `bokstaven`、`Buchstabe` 或 `lettera` 等前綴，也不把中文近似音送進語音引擎。所有字母固定使用 `0.72` 慢速；日常對話、數字公式與小數共用同一個全站語速設定，切換語言或模塊時不會沿用不同快慢值。語音品質與可用清單仍取決於瀏覽器及作業系統已安裝的語音包；建議在 Safari、Chrome、Edge 測試。
 
 ## 部署建議
 
