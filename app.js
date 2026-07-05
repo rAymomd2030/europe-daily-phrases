@@ -69,14 +69,6 @@ function writeStorage(key, value) {
   }
 }
 
-function getStoredVoiceName(languageKey) {
-  try {
-    return localStorage.getItem(`speechVoice.${languageKey}`) || "";
-  } catch {
-    return "";
-  }
-}
-
 function storeVoiceName(languageKey, voiceName) {
   try {
     localStorage.setItem(`speechVoice.${languageKey}`, voiceName);
@@ -185,14 +177,19 @@ function renderCategoryFilters() {
     .join("");
 }
 
-function registerSpeechItem(item, languageKey) {
+function registerSpeechItem(item, languageKey, fixedRate = null) {
   const speechId = `speech-${++state.speechSequence}`;
-  state.speechItems.set(speechId, { item, languageKey });
+  state.speechItems.set(speechId, { item, languageKey, fixedRate });
   return speechId;
 }
 
-function renderSpeechControls(item, label, languageKey = state.language) {
-  const speechId = registerSpeechItem(item, languageKey);
+function renderSpeechControls(
+  item,
+  label,
+  languageKey = state.language,
+  fixedRate = null,
+) {
+  const speechId = registerSpeechItem(item, languageKey, fixedRate);
   return `
     <div class="speech-controls" aria-label="${escapeHtml(label)}發音控制">
       <button type="button" data-action="play" data-speech-id="${speechId}" title="播放發音" aria-label="播放${escapeHtml(label)}">▶</button>
@@ -208,7 +205,7 @@ function renderAlphabetCard(item) {
       <p class="letter-name">${escapeHtml(item.name)}</p>
       <p class="pronunciation">中文近似音：${escapeHtml(item.pronunciation)}</p>
       ${item.note ? `<span class="foreign-tag">${escapeHtml(item.note)}</span>` : ""}
-      ${renderSpeechControls(item, `字母 ${item.text}`)}
+      ${renderSpeechControls(item, `字母 ${item.text}`, state.language, 0.72)}
     </article>`;
 }
 
@@ -423,7 +420,7 @@ function renderContent() {
   });
 
   if (state.view === "alphabet") {
-    note = `${language.alphabetNote} 播放時只朗讀該語言的字母名稱，不會加入其他提示詞。`;
+    note = `${language.alphabetNote} 播放時只朗讀該語言的字母名稱，固定使用 0.72 慢速，不會加入其他提示詞。`;
     cards = language.alphabet
       .filter((item) =>
         matchesQuery(item.text, item.name, item.pronunciation, item.note),
@@ -528,16 +525,26 @@ function voicesForLanguage(speechLang) {
   );
 }
 
+function voiceMatchesName(voice, voiceName) {
+  const actualName = normalize(voice?.name);
+  const requiredName = normalize(voiceName);
+  return (
+    actualName === requiredName ||
+    actualName.startsWith(`${requiredName} (`)
+  );
+}
+
+function configuredVoicesForLanguage(languageKey = state.language) {
+  const language = getLanguage(languageKey);
+  return voicesForLanguage(language.speechLang).filter((voice) =>
+    voiceMatchesName(voice, language.voiceName),
+  );
+}
+
 function getBestVoiceForLanguage(speechLang, languageKey = state.language) {
   const target = normalizeLang(speechLang);
-  const voices = voicesForLanguage(speechLang);
+  const voices = configuredVoicesForLanguage(languageKey);
   if (!voices.length) return { voice: null, exact: false };
-
-  const storedName = getStoredVoiceName(languageKey);
-  const storedVoice = voices.find((voice) => voice.name === storedName);
-  if (storedVoice) {
-    return { voice: storedVoice, exact: normalizeLang(storedVoice.lang) === target };
-  }
 
   const exactVoice = voices.find((voice) => normalizeLang(voice.lang) === target);
   return { voice: exactVoice || voices[0], exact: Boolean(exactVoice) };
@@ -562,7 +569,7 @@ function updateVoiceOptions() {
     return;
   }
 
-  const voices = voicesForLanguage(language.speechLang).sort(
+  const voices = configuredVoicesForLanguage(state.language).sort(
     (a, b) =>
       Number(normalizeLang(b.lang) === normalizeLang(language.speechLang)) -
         Number(normalizeLang(a.lang) === normalizeLang(language.speechLang)) ||
@@ -573,7 +580,7 @@ function updateVoiceOptions() {
   if (!voices.length) {
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = "沒有找到此語言語音";
+    option.textContent = `沒有找到 ${language.voiceName}`;
     elements.voiceSelect.append(option);
     elements.voiceSelect.disabled = true;
     showVoiceWarning(state.language, false);
@@ -615,21 +622,20 @@ function updateVoiceDiagnostics() {
     ? "瀏覽器不支援 Web Speech API"
     : hasVoice
       ? best.exact
-        ? "完全符合"
-        : "同語系語音"
-      : `此裝置沒有${language.label}語音，發音可能不準`;
+        ? `指定 voice，完全符合`
+        : "指定 voice，同語系語音"
+      : `未找到指定 voice：${language.voiceName}`;
   elements.voiceDiagnostic.classList.toggle("is-warning", !speechSupported || !hasVoice);
   elements.voiceDiagnostic.classList.toggle("is-exact", hasVoice && best.exact);
 }
 
 function showVoiceWarning(languageKey = state.language, toast = true) {
   const language = getLanguage(languageKey);
-  const message =
-    "此裝置目前沒有安裝這個語言的語音，發音可能不準。請到系統語音設定安裝對應語言，或改用支援該語言的瀏覽器。";
+  const message = `此裝置目前沒有安裝指定的 ${language.voiceName}（${language.speechLang}）語音。請到系統語音設定安裝，或改用支援此語音的瀏覽器。`;
   if (languageKey === state.language) {
     elements.voiceStatus.textContent = message;
   }
-  if (toast) showToast(`${language.label}：未找到對應語音，已停止播放`);
+  if (toast) showToast(`${language.label}：未找到 ${language.voiceName}，已停止播放`);
 }
 
 function updateSpeedControls() {
@@ -739,10 +745,12 @@ function handleGridAction(event) {
   if (action === "play" || action === "play-slow") {
     const speechEntry = state.speechItems.get(button.dataset.speechId);
     if (!speechEntry) return;
+    const playbackRate =
+      speechEntry.fixedRate ?? (action === "play-slow" ? 0.72 : null);
     speakText(
       speechEntry.item,
       speechEntry.languageKey,
-      action === "play-slow" ? 0.72 : null,
+      playbackRate,
     );
   } else if (action === "stop") {
     stopPlayback();
