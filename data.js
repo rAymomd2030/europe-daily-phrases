@@ -431,7 +431,7 @@ const LANGUAGE_DATA = {
     nativeName: "Italiano",
     flag: "🇮🇹",
     speechLang: "it-IT",
-    voiceName: "Eddy",
+    voiceName: "Alice",
     accent: "italian",
     alphabetNote: "義大利語主要使用 21 個字母。J、K、W、X、Y 多見於外來語、名字或品牌。",
     alphabet: [
